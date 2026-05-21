@@ -74,7 +74,14 @@ const initServer = async () => {
 };
 
 initServer().catch((error) => {
-  console.error('Failed to initialize server:', error);
+  if (error?.code === 'ER_ACCESS_DENIED_ERROR') {
+    console.error(
+      'Failed to initialize server: MySQL access denied. Check MYSQL_USER/MYSQL_PASSWORD and make sure your MySQL host allows remote connections from this server IP.',
+      error
+    );
+  } else {
+    console.error('Failed to initialize server:', error);
+  }
   process.exit(1);
 });
 

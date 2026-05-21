@@ -4,6 +4,14 @@ import { apiUrl } from '../config/api';
 
 const AuthContext = createContext();
 
+const getAuthError = (error, fallback) => {
+  if (error.response?.data?.error) return error.response.data.error;
+  if (error.code === 'ERR_NETWORK') {
+    return 'Backend is unavailable. Check that the API server is running and database login works.';
+  }
+  return fallback;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -56,7 +64,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', response.data.token);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.error };
+      return { success: false, error: getAuthError(error, 'Login failed') };
     }
   };
 
@@ -72,7 +80,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', response.data.token);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.error };
+      return { success: false, error: getAuthError(error, 'Registration failed') };
     }
   };
 
