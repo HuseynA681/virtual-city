@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { readDatabase, findById } = require('../store');
 
-const OWNER_USERNAME = 'huseyn';
+const OWNER_USERNAME = 'HuseynAgazade123';
 
 const isOwnerUser = (user) => user?.username?.trim().toLowerCase() === OWNER_USERNAME;
 
