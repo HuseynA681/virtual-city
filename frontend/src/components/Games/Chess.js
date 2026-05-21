@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Copy, RotateCcw, Swords, Trophy, Users, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
+import { apiUrl } from '../../config/api';
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const VALUES = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
@@ -115,7 +116,7 @@ export default function Chess({ onClose }) {
     setRewarded(true);
     try {
       await axios.post(
-        'http://localhost:5000/api/users/add-coins',
+        apiUrl('/api/users/add-coins'),
         { amount: 500 },
         { headers: { Authorization: `Bearer ${token}` } }
       );

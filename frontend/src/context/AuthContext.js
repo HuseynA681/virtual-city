@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, createContext } from 'react';
 import axios from 'axios';
+import { apiUrl } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -18,7 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/auth/verify', {
+      const response = await axios.get(apiUrl('/api/auth/verify'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/users/me', {
+      const response = await axios.get(apiUrl('/api/users/me'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(response.data);
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await axios.post(apiUrl('/api/auth/login'), {
         email,
         password
       });
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', {
+      const response = await axios.post(apiUrl('/api/auth/register'), {
         username,
         email,
         password

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Users, Plus } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 export const ClansComponent = () => {
   const [clans, setClans] = useState([]);
@@ -18,7 +19,7 @@ export const ClansComponent = () => {
 
   const fetchClans = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/clans');
+      const response = await axios.get(apiUrl('/api/clans'));
       setClans(response.data);
     } catch (error) {
       console.error('Failed to fetch clans:', error);
@@ -31,7 +32,7 @@ export const ClansComponent = () => {
     
     try {
       await axios.post(
-        'http://localhost:5000/api/clans/create',
+        apiUrl('/api/clans/create'),
         { name: clanName, description: clanDesc },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -47,7 +48,7 @@ export const ClansComponent = () => {
   const joinClan = async (clanId) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/clans/join/${clanId}`,
+        apiUrl(`/api/clans/join/${clanId}`),
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

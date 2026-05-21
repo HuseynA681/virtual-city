@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Plus, X } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 export const MarketplaceComponent = () => {
   const [listings, setListings] = useState([]);
@@ -17,7 +18,7 @@ export const MarketplaceComponent = () => {
   const fetchListings = async () => {
     try {
       const query = new URLSearchParams(filter).toString();
-      const response = await axios.get(`http://localhost:5000/api/marketplace?${query}`);
+      const response = await axios.get(apiUrl(`/api/marketplace?${query}`));
       setListings(response.data);
     } catch (error) {
       console.error('Failed to fetch listings:', error);
@@ -28,7 +29,7 @@ export const MarketplaceComponent = () => {
   const buyItem = async (listingId) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/marketplace/buy/${listingId}`,
+        apiUrl(`/api/marketplace/buy/${listingId}`),
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

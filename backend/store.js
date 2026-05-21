@@ -5,6 +5,7 @@ const mysql = require('mysql2/promise');
 const DB_FOLDER = path.join(__dirname, 'data');
 const JSON_PATH = path.join(DB_FOLDER, 'db.json');
 const DB_TYPE = (process.env.DB_TYPE || 'mysql').toLowerCase();
+const IS_HOSTED = Boolean(process.env.RENDER || process.env.NETLIFY || process.env.NODE_ENV === 'production');
 
 const defaultData = {
   users: [],
@@ -35,20 +36,58 @@ const parseArray = (value) => {
 
 const serialize = (value) => (value === undefined ? null : JSON.stringify(value));
 
-const mysqlConfig = () => ({
-  host: process.env.MYSQL_HOST || 'localhost',
-  port: Number(process.env.MYSQL_PORT) || 3306,
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || '',
-  database: process.env.MYSQL_DATABASE || 'virtual_city',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  multipleStatements: true,
-  decimalNumbers: true
-});
+const parseMysqlUrl = () => {
+  const rawUrl = process.env.MYSQL_URL || process.env.DATABASE_URL;
+  if (!rawUrl) return {};
+
+  try {
+    const url = new URL(rawUrl);
+    if (!url.protocol.startsWith('mysql')) return {};
+
+    return {
+      host: url.hostname,
+      port: Number(url.port) || 3306,
+      user: decodeURIComponent(url.username || ''),
+      password: decodeURIComponent(url.password || ''),
+      database: decodeURIComponent(url.pathname.replace(/^\//, ''))
+    };
+  } catch {
+    throw new Error('Invalid MYSQL_URL/DATABASE_URL. Expected mysql://user:password@host:3306/database');
+  }
+};
+
+const mysqlConfig = () => {
+  const urlConfig = parseMysqlUrl();
+  const config = {
+    host: process.env.MYSQL_HOST || urlConfig.host || (IS_HOSTED ? undefined : 'localhost'),
+    port: Number(process.env.MYSQL_PORT || urlConfig.port) || 3306,
+    user: process.env.MYSQL_USER || urlConfig.user || (IS_HOSTED ? undefined : 'root'),
+    password: process.env.MYSQL_PASSWORD || urlConfig.password || '',
+    database: process.env.MYSQL_DATABASE || urlConfig.database || (IS_HOSTED ? undefined : 'virtual_city'),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    multipleStatements: true,
+    decimalNumbers: true
+  };
+
+  if (DB_TYPE === 'mysql' && IS_HOSTED) {
+    const missing = ['host', 'user', 'database'].filter((key) => !config[key]);
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing MySQL environment variables on deploy: ${missing.join(', ')}. ` +
+        'Set MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, and MYSQL_PORT in Render, or set MYSQL_URL.'
+      );
+    }
+  }
+
+  return config;
+};
 
 const createDatabaseIfNeeded = async () => {
+  const shouldCreateDatabase = process.env.MYSQL_CREATE_DATABASE === 'true' || (!IS_HOSTED && process.env.MYSQL_CREATE_DATABASE !== 'false');
+  if (!shouldCreateDatabase) return;
+
   const { host, port, user, password, database } = mysqlConfig();
   const connection = await mysql.createConnection({ host, port, user, password, multipleStatements: true });
   await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);

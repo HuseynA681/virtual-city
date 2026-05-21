@@ -3,6 +3,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { MousePointerClick, RotateCcw, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { apiUrl } from '../../config/api';
 
 export default function Clicker({ onClose }) {
   const { token, refreshUser } = useAuth();
@@ -61,7 +62,7 @@ export default function Clicker({ onClose }) {
     setPendingCashout(true);
     try {
       await axios.post(
-        'http://localhost:5000/api/users/add-coins',
+        apiUrl('/api/users/add-coins'),
         { amount },
         { headers: { Authorization: `Bearer ${token}` } }
       );

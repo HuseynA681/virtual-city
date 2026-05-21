@@ -3,6 +3,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { RotateCcw, Send, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { apiUrl } from '../../config/api';
 
 const makeSecret = () => Math.floor(Math.random() * 100) + 1;
 
@@ -22,7 +23,7 @@ export default function NumberGuess({ onClose }) {
     setRewarding(true);
     try {
       await axios.post(
-        'http://localhost:5000/api/users/add-coins',
+        apiUrl('/api/users/add-coins'),
         { amount },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import io from 'socket.io-client';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import { apiUrl, SOCKET_URL } from '../config/api';
 
 const ChatContext = createContext();
 
@@ -14,7 +15,7 @@ export const ChatProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && token) {
-      const newSocket = io('http://localhost:5000', {
+      const newSocket = io(SOCKET_URL, {
         auth: { token }
       });
 
@@ -66,7 +67,7 @@ export const ChatProvider = ({ children }) => {
 
   const runAdminCommand = async (command) => {
     const response = await axios.post(
-      'http://localhost:5000/api/admin/command',
+      apiUrl('/api/admin/command'),
       { command },
       { headers: { Authorization: `Bearer ${token}` } }
     );

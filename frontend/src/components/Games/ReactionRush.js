@@ -3,6 +3,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { RotateCcw, X, Zap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { apiUrl } from '../../config/api';
 
 const getDelay = () => 1200 + Math.floor(Math.random() * 2600);
 const getReward = (reactionTime) => {
@@ -26,7 +27,7 @@ export default function ReactionRush({ onClose }) {
   const awardCoins = async (amount) => {
     try {
       await axios.post(
-        'http://localhost:5000/api/users/add-coins',
+        apiUrl('/api/users/add-coins'),
         { amount },
         { headers: { Authorization: `Bearer ${token}` } }
       );

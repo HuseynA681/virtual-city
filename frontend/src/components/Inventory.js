@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Package, Trash2 } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 export const InventoryComponent = () => {
   const [inventory, setInventory] = useState([]);
@@ -15,7 +16,7 @@ export const InventoryComponent = () => {
 
   const fetchInventory = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/inventory', {
+      const response = await axios.get(apiUrl('/api/inventory'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       setInventory(response.data);
@@ -28,7 +29,7 @@ export const InventoryComponent = () => {
   const removeItem = async (itemId) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/inventory/remove/${itemId}`,
+        apiUrl(`/api/inventory/remove/${itemId}`),
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

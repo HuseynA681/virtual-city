@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Users, TrendingUp, BarChart3, Ban, Trash2, UserPlus, UserMinus, RotateCcw } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 export const AdminPanelComponent = () => {
   const [activeTab, setActiveTab] = useState('stats');
@@ -17,7 +18,7 @@ export const AdminPanelComponent = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/stats', {
+      const response = await axios.get(apiUrl('/api/admin/stats'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(response.data);
@@ -28,7 +29,7 @@ export const AdminPanelComponent = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/users', {
+      const response = await axios.get(apiUrl('/api/users'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(response.data);
@@ -40,7 +41,7 @@ export const AdminPanelComponent = () => {
   const banUser = async (userId) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/admin/ban/${userId}`,
+        apiUrl(`/api/admin/ban/${userId}`),
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -53,7 +54,7 @@ export const AdminPanelComponent = () => {
   const adminAction = async (action, userId) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/admin/${action}/${userId}`,
+        apiUrl(`/api/admin/${action}/${userId}`),
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -68,7 +69,7 @@ export const AdminPanelComponent = () => {
     if (!window.confirm('Clear global chat messages?')) return;
 
     try {
-      await axios.delete('http://localhost:5000/api/admin/chat/global', {
+      await axios.delete(apiUrl('/api/admin/chat/global'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Global chat cleared');
