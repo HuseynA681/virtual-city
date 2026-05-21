@@ -238,5 +238,32 @@ router.get('/stats', authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
+// Fix owner role (internal use)
+router.post('/fix-owner-role', async (req, res) => {
+  try {
+    const db = readDatabase();
+    const ownerUser = filter(db, 'users', () => true).find(u => u.username?.trim().toLowerCase() === 'huseyngazade123');
+    
+    if (!ownerUser) {
+      return res.status(404).json({ error: 'Owner user not found' });
+    }
+
+    ownerUser.role = 'owner';
+    ownerUser.isAdmin = true;
+    writeDatabase(db);
+    
+    res.json({ 
+      message: 'Owner role set successfully', 
+      user: {
+        username: ownerUser.username,
+        role: ownerUser.role,
+        isAdmin: ownerUser.isAdmin
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fix owner role' });
+  }
+});
+
   return router;
 };
