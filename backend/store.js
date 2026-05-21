@@ -394,6 +394,11 @@ const populateUser = (user, data) => {
   const cleanUser = { ...user };
   delete cleanUser.password;
   cleanUser.id = cleanUser._id;
+  
+  // Ensure role is set
+  if (!cleanUser.role) {
+    cleanUser.role = user.isAdmin ? 'admin' : 'user';
+  }
 
   cleanUser.friends = (user.friends || [])
     .map((friendId) => findById(data, 'users', friendId))

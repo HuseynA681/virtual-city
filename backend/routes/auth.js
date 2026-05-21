@@ -97,6 +97,8 @@ router.post('/login', async (req, res) => {
 
     if (isOwnerUser(user)) {
       user.role = 'owner';
+    } else if (!user.role) {
+      user.role = 'user';
     }
 
     user.lastLogin = new Date().toISOString();
