@@ -15,22 +15,34 @@ export const ChatProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && token) {
+      console.log('🔌 Initializing socket with SOCKET_URL:', SOCKET_URL);
       const newSocket = io(SOCKET_URL, {
         auth: { token },
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],
+        upgrade: true,
+        rememberUpgrade: true,
         reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 5
+        reconnectionDelay: 100,
+        reconnectionDelayMax: 3000,
+        reconnectionAttempts: Infinity,
+        timeout: 20000
       });
 
       newSocket.on('connect', () => {
-        console.log('✅ Connected to chat');
+        console.log('✅ Connected to chat', newSocket.id, 'via', newSocket.io.engine.transport.name);
         newSocket.emit('join-chat', { userId: user.id, username: user.username });
       });
 
       newSocket.on('connect_error', (error) => {
         console.error('❌ Socket connection error:', error);
+      });
+
+      newSocket.on('error', (error) => {
+        console.error('❌ Socket error:', error);
+      });
+
+      newSocket.on('disconnect', (reason) => {
+        console.log('🔴 Disconnected from chat:', reason);
       });
 
       newSocket.on('receive-message', (data) => {
