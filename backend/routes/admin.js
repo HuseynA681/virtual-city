@@ -1,24 +1,26 @@
 const express = require('express');
 const { authMiddleware, adminMiddleware, isOwnerUser } = require('../middleware/auth');
 const { readDatabase, writeDatabase, findById, filter } = require('../store');
-const router = express.Router();
 
-const findUserByIdOrName = (db, value) => {
-  const normalized = String(value || '').trim().toLowerCase();
-  if (!normalized) return null;
+module.exports = (io) => {
+  const router = express.Router();
 
-  return filter(db, 'users', () => true).find((user) => (
-    String(user._id) === value ||
-    user.username?.toLowerCase() === normalized ||
-    user.email?.toLowerCase() === normalized
-  ));
-};
+  const findUserByIdOrName = (db, value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (!normalized) return null;
 
-const cleanUser = (user) => {
-  const cleaned = { ...user, id: user._id };
-  delete cleaned.password;
-  return cleaned;
-};
+    return filter(db, 'users', () => true).find((user) => (
+      String(user._id) === value ||
+      user.username?.toLowerCase() === normalized ||
+      user.email?.toLowerCase() === normalized
+    ));
+  };
+
+  const cleanUser = (user) => {
+    const cleaned = { ...user, id: user._id };
+    delete cleaned.password;
+    return cleaned;
+  };
 
 // Ban user
 router.post('/ban/:userId', authMiddleware, adminMiddleware, async (req, res) => {
@@ -57,44 +59,44 @@ router.post('/unban/:userId', authMiddleware, adminMiddleware, async (req, res) 
 });
 
 // Promote user to admin
-router.post('/promote/:userId', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const db = readDatabase();
-    const user = findUserByIdOrName(db, req.params.userId);
+  router.post('/promote/:userId', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+      const db = readDatabase();
+      const user = findUserByIdOrName(db, req.params.userId);
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      user.role = 'co-owner';
+      writeDatabase(db);
+      res.json({ message: 'User promoted to co-owner', user: cleanUser(user) });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to promote user' });
     }
+  });
 
-    user.isAdmin = true;
-    writeDatabase(db);
-    res.json({ message: 'User promoted to admin', user: cleanUser(user) });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to promote user' });
-  }
-});
+  // Demote admin to normal user
+  router.post('/demote/:userId', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+      const db = readDatabase();
+      const user = findUserByIdOrName(db, req.params.userId);
 
-// Demote admin to normal user
-router.post('/demote/:userId', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const db = readDatabase();
-    const user = findUserByIdOrName(db, req.params.userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      if (isOwnerUser(user)) {
+        return res.status(400).json({ error: 'Owner cannot be demoted' });
+      }
+
+      user.role = 'elder';
+      writeDatabase(db);
+      res.json({ message: 'Admin demoted to elder', user: cleanUser(user) });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to demote user' });
     }
-
-    if (isOwnerUser(user)) {
-      return res.status(400).json({ error: 'Huseyn cannot be demoted' });
-    }
-
-    user.isAdmin = false;
-    writeDatabase(db);
-    res.json({ message: 'Admin demoted to normal user', user: cleanUser(user) });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to demote user' });
-  }
-});
+  });
 
 // Clear chat messages
 router.delete('/chat/:channel?', authMiddleware, adminMiddleware, async (req, res) => {
@@ -161,23 +163,27 @@ router.post('/command', authMiddleware, adminMiddleware, async (req, res) => {
     }
 
     if (command === 'promote') {
-      user.isAdmin = true;
+      user.role = 'co-owner';
       writeDatabase(db);
-      return res.json({ message: `${user.username} promoted to admin`, user: cleanUser(user) });
+      return res.json({ message: `${user.username} promoted to co-owner`, user: cleanUser(user) });
     }
 
     if (command === 'demote') {
       if (isOwnerUser(user)) {
-        return res.status(400).json({ error: 'Huseyn cannot be demoted' });
+        return res.status(400).json({ error: 'Owner cannot be demoted' });
       }
-      user.isAdmin = false;
+      user.role = 'elder';
       writeDatabase(db);
-      return res.json({ message: `${user.username} demoted to normal user`, user: cleanUser(user) });
+      return res.json({ message: `${user.username} demoted to elder`, user: cleanUser(user) });
     }
 
     if (command === 'ban') {
       user.isBanned = true;
       writeDatabase(db);
+      
+      // Disconnect banned user from socket.io
+      io.to('global-chat').emit('user-banned', { username: user.username });
+      
       return res.json({ message: `${user.username} banned`, user: cleanUser(user) });
     }
 
@@ -232,4 +238,5 @@ router.get('/stats', authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+  return router;
+};

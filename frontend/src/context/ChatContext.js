@@ -53,6 +53,11 @@ export const ChatProvider = ({ children }) => {
         }, 2000);
       });
 
+      newSocket.on('user-banned', (data) => {
+        console.log('🚫 User banned:', data);
+        setOnlineUsers(prev => prev.filter(u => u !== data.username));
+      });
+
       setSocket(newSocket);
 
       return () => newSocket.disconnect();

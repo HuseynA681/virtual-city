@@ -29,7 +29,7 @@ export const Dashboard = () => {
     { id: 'apartment', label: 'Apartment', icon: Home },
     { id: 'games', label: 'Games', icon: Gamepad2 },
     { id: 'clans', label: 'Clans', icon: Users },
-    ...(user?.isAdmin ? [{ id: 'admin', label: 'Admin', icon: Shield }] : [])
+    ...(['owner', 'co-owner', 'elder'].includes(user?.role) ? [{ id: 'admin', label: 'Admin', icon: Shield }] : [])
   ];
 
   return (
@@ -48,7 +48,9 @@ export const Dashboard = () => {
           <h2 className="font-semibold text-lg">{user?.username}</h2>
           <p className="text-purple-300 text-sm">Level {user?.level}</p>
           <p className="text-yellow-400 font-semibold mt-2">💰 {user?.coins} coins</p>
-          {user?.isAdmin && <p className="text-red-400 text-xs font-bold mt-1">👑 ADMIN</p>}
+          {user?.role === 'owner' && <p className="text-red-400 text-xs font-bold mt-1">👑 OWNER</p>}
+          {user?.role === 'co-owner' && <p className="text-yellow-400 text-xs font-bold mt-1">⭐ CO-OWNER</p>}
+          {user?.role === 'elder' && <p className="text-blue-400 text-xs font-bold mt-1">🧙 ELDER</p>}
         </div>
 
         {/* Navigation */}

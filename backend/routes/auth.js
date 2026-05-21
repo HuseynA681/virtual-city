@@ -39,15 +39,15 @@ router.post('/register', async (req, res) => {
       lastLogin: new Date().toISOString(),
       notifications: true,
       darkMode: true,
-      isAdmin: false,
+      role: 'user',
       isBanned: false
     };
 
-    userData.isAdmin = isOwnerUser(userData);
+    userData.role = isOwnerUser(userData) ? 'owner' : 'user';
     const user = insert(db, 'users', userData);
 
     const token = jwt.sign(
-      { userId: user._id, username: user.username, isAdmin: user.isAdmin },
+      { userId: user._id, username: user.username, role: user.role },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '30d' }
     );
@@ -62,7 +62,7 @@ router.post('/register', async (req, res) => {
         avatar: user.avatar,
         coins: user.coins,
         level: user.level,
-        isAdmin: user.isAdmin
+        role: user.role
       }
     });
   } catch (error) {
@@ -96,14 +96,14 @@ router.post('/login', async (req, res) => {
     }
 
     if (isOwnerUser(user)) {
-      user.isAdmin = true;
+      user.role = 'owner';
     }
 
     user.lastLogin = new Date().toISOString();
     writeDatabase(db);
 
     const token = jwt.sign(
-      { userId: user._id, username: user.username, isAdmin: user.isAdmin },
+      { userId: user._id, username: user.username, role: user.role },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '30d' }
     );
@@ -118,7 +118,7 @@ router.post('/login', async (req, res) => {
         avatar: user.avatar,
         coins: user.coins,
         level: user.level,
-        isAdmin: user.isAdmin
+        role: user.role
       }
     });
   } catch (error) {

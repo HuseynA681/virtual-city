@@ -21,15 +21,15 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    if (isOwnerUser(user) && !user.isAdmin) {
-      user.isAdmin = true;
+    if (isOwnerUser(user) && user.role !== 'owner') {
+      user.role = 'owner';
     }
 
     req.userId = decoded.userId;
     req.user = {
       ...decoded,
       username: user.username,
-      isAdmin: Boolean(user.isAdmin || isOwnerUser(user))
+      role: user.role || 'user'
     };
     next();
   } catch (error) {
@@ -38,7 +38,8 @@ const authMiddleware = (req, res, next) => {
 };
 
 const adminMiddleware = (req, res, next) => {
-  if (!req.user || !req.user.isAdmin) {
+  const adminRoles = ['owner', 'co-owner', 'elder'];
+  if (!req.user || !adminRoles.includes(req.user.role)) {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();

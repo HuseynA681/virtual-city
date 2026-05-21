@@ -41,7 +41,7 @@ const mountRoutes = () => {
   app.use('/api/marketplace', require('./routes/marketplace'));
   app.use('/api/apartments', require('./routes/apartments'));
   app.use('/api/clans', require('./routes/clans'));
-  app.use('/api/admin', require('./routes/admin'));
+  app.use('/api/admin', require('./routes/admin')(io));
 };
 
 // Health Check
