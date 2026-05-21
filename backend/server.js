@@ -165,7 +165,9 @@ io.on('connection', (socket) => {
 
   socket.on('send-message', (data) => {
     const user = connectedUsers.get(socket.id);
+    console.log('Send-message received:', { socketId: socket.id, user, data });
     if (user) {
+      console.log('Emitting message to global-chat:', { userId: user.userId, username: user.username, message: data.message });
       io.to('global-chat').emit('receive-message', {
         userId: user.userId,
         username: user.username,
@@ -173,6 +175,8 @@ io.on('connection', (socket) => {
         timestamp: new Date(),
         avatar: data.avatar
       });
+    } else {
+      console.warn('User not found in connectedUsers for socket:', socket.id);
     }
   });
 
