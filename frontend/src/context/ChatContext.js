@@ -15,38 +15,22 @@ export const ChatProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && token) {
-      console.log('🔌 Initializing socket with SOCKET_URL:', SOCKET_URL);
       const newSocket = io(SOCKET_URL, {
         auth: { token },
-        transports: ['polling', 'websocket'],
-        upgrade: true,
-        rememberUpgrade: true,
-        reconnection: true,
-        reconnectionDelay: 100,
-        reconnectionDelayMax: 3000,
-        reconnectionAttempts: Infinity,
-        timeout: 20000
+        transports: ['websocket', 'polling']
       });
 
       newSocket.on('connect', () => {
-        console.log('✅ Connected to chat', newSocket.id, 'via', newSocket.io.engine.transport.name);
-        newSocket.emit('join-chat', { userId: user.id, username: user.username });
+        console.log('✅ Connected to chat:', newSocket.id);
+        newSocket.emit('join-chat');
       });
 
       newSocket.on('connect_error', (error) => {
-        console.error('❌ Socket connection error:', error);
-      });
-
-      newSocket.on('error', (error) => {
-        console.error('❌ Socket error:', error);
-      });
-
-      newSocket.on('disconnect', (reason) => {
-        console.log('🔴 Disconnected from chat:', reason);
+        console.error('❌ Connection error:', error);
       });
 
       newSocket.on('receive-message', (data) => {
-        console.log('📨 Message received:', data);
+        console.log('📨 Message:', data);
         setMessages(prev => [...prev, data]);
       });
 
@@ -55,12 +39,10 @@ export const ChatProvider = ({ children }) => {
       });
 
       newSocket.on('user-joined', (data) => {
-        console.log('👤 User joined:', data);
         setOnlineUsers(prev => [...new Set([...prev, data.username])]);
       });
 
       newSocket.on('user-left', (data) => {
-        console.log('👤 User left:', data);
         setOnlineUsers(prev => prev.filter(u => u !== data.username));
       });
 
