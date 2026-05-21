@@ -9,6 +9,9 @@ const { ensureDatabase, readDatabase, findById } = require('./store');
 const { isOwnerUser } = require('./middleware/auth');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+const app = express();
+const server = http.createServer(app);
+
 const io = socketIO(server, {
   cors: {
     origin: [
